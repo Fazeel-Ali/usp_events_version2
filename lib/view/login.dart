@@ -2,17 +2,12 @@
 
 //import 'dart:math';
 
-import 'dart:math';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:usp_events_version2/view/profile.dart';
 import 'package:usp_events_version2/view/registration.dart';
 import 'package:usp_events_version2/widgets/loading.dart';
-//import 'package:usp_events_app/view/Profile.dart';
-//import 'package:usp_events_app/view/registration.dart';
-//import 'package:usp_events_app/widget/loading.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -139,6 +134,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: <Widget>[
+                              SizedBox(
+                                height: 200,
+                                child: Image.asset(
+                                  'assets/logo.jpg',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
                               SizedBox(height: 45),
                               emailfield,
                               SizedBox(height: 25),
@@ -184,21 +186,43 @@ class _LoginScreenState extends State<LoginScreen> {
           );
   }
 
+  // login function
   void signIn(String email, String password) async {
     if (_formkey.currentState!.validate()) {
-      await _auth
-          .signInWithEmailAndPassword(email: email, password: password)
-          .then((uid) => {
-                Fluttertoast.showToast(
-                    msg: "Login Successful",
-                    backgroundColor: Colors.red,
-                    gravity: ToastGravity.CENTER),
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => ProfileScreen())),
-              })
-          .catchError((e) {
-        Fluttertoast.showToast(msg: e!.message);
-      });
+      setState(() => loading = true);
+      try {
+        await _auth
+            .signInWithEmailAndPassword(email: email, password: password)
+            .then((uid) => {
+                  Fluttertoast.showToast(
+                      msg: "Login Successful",
+                      backgroundColor: Colors.red,
+                      gravity: ToastGravity.CENTER),
+                  Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => ProfileScreen())),
+                });
+      } on FirebaseAuthException catch (error) {
+        switch (error.code) {
+          case "invalid-email":
+            errorMessage = "Your email address appears to be malformed.";
+
+            break;
+          case "wrong-password":
+            errorMessage = "Your password is wrong.";
+            break;
+          case "user-not-found":
+            errorMessage = "User with this email doesn't exist.";
+            break;
+          case "user-disabled":
+            errorMessage = "User with this email has been disabled.";
+            break;
+          default:
+            errorMessage = "An undefined Error happened.";
+        }
+        setState(() => loading = false);
+        Fluttertoast.showToast(msg: errorMessage!);
+        print(error.code);
+      }
     }
   }
 }

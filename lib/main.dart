@@ -2,7 +2,7 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:usp_events_version2/view/login.dart';
+import 'package:usp_events_version2/view/splashScreen.dart';
 //import 'package:usp_events_app/view/login.dart';
 //import 'package:usp_events_app/view/splashScreen.dart';
 
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.teal,
       ),
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+      home: SplashScreen(),
     );
   }
 }

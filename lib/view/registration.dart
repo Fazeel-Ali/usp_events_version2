@@ -1,14 +1,13 @@
-// ignore_for_file: unnecessary_new, prefer_const_constructors
-
 //import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+// ignore_for_file: avoid_print, prefer_const_constructors, unnecessary_new
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:usp_events_version2/view/profile.dart';
+import 'package:usp_events_version2/services/AuthService.dart';
+import 'package:usp_events_version2/view/Profile.dart';
 import 'package:usp_events_version2/widgets/loading.dart';
-//import 'package:usp_events_app/model/user_model.dart';
-//import 'package:usp_events_app/view/Profile.dart';
-//  `import 'package:usp_events_app/widget/loading.dart';
+
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({Key? key}) : super(key: key);
@@ -21,8 +20,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   // loading
   bool loading = false;
 
-  //firebase
-  final _auth = FirebaseAuth.instance;
+  //firebase auth
+  final AuthService _auth = AuthService();
 
   // Form key
   final _formkey = GlobalKey<FormState>();
@@ -197,7 +196,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
         minWidth: MediaQuery.of(context).size.width,
         onPressed: () {
-          signUp(emailEditingController.text, passwordEditingController.text);
+          createUser();
         },
         child: Text(
           'SIGN UP',
@@ -253,25 +252,28 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           );
   }
 
-  void signUp(String email, String password) async {
+  // SignUp function
+  void createUser() async {
     if (_formkey.currentState!.validate()) {
       setState(() => loading = true);
-      await _auth
-          .createUserWithEmailAndPassword(email: email, password: password)
-          .then((value) => {
-                Fluttertoast.showToast(
-                    msg: "Acoount creation successful",
-                    backgroundColor: Colors.red,
-                    gravity: ToastGravity.CENTER),
-                Navigator.pushAndRemoveUntil(
-                    (context),
-                    MaterialPageRoute(builder: (context) => ProfileScreen()),
-                    (route) => false)
-              })
-          .catchError((e) {
+      dynamic result = await _auth.createNewUser(firstNameEditingController.text, secondNameEditingController.text,
+          emailEditingController.text, passwordEditingController.text);
+      if (result == null) {
         setState(() => loading = false);
-        Fluttertoast.showToast(msg: e!.message);
-      });
+        Fluttertoast.showToast(
+            msg: "Email is invalid",
+            backgroundColor: Colors.red,
+            gravity: ToastGravity.CENTER);
+      } else {
+        Fluttertoast.showToast(
+            msg: "Acoount creation successful",
+            backgroundColor: Colors.red,
+            gravity: ToastGravity.CENTER);
+        Navigator.pushAndRemoveUntil(
+            (context),
+            MaterialPageRoute(builder: (context) => ProfileScreen()),
+            (route) => false);
+      }
     }
   }
 }

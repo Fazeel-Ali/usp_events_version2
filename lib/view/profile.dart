@@ -1,8 +1,9 @@
-// ignore_for_file: prefer_const_constructors, unnecessary_this, file_names
+// ignore_for_file: prefer_const_constructors, unnecessary_this, file_names, avoid_print
 
-//import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:usp_events_version2/model/user_model.dart';
 import 'package:usp_events_version2/view/login.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,6 +15,20 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   User? user = FirebaseAuth.instance.currentUser;
+  UserModel loggedInUser = UserModel();
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseFirestore.instance
+        .collection("userInfo")
+        .doc(user!.uid)
+        .get()
+        .then((value) {
+      this.loggedInUser = UserModel.fromMap(value.data());
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +54,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               SizedBox(
                 height: 10,
+              ),
+              Text(
+                "${loggedInUser.firstname} ${loggedInUser.secondname}",
+                style: TextStyle(
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                "${loggedInUser.email}",
+                style: TextStyle(
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               SizedBox(
                 height: 15,

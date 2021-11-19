@@ -3,8 +3,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:usp_events_version2/view/splashScreen.dart';
-//import 'package:usp_events_app/view/login.dart';
-//import 'package:usp_events_app/view/splashScreen.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

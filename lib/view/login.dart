@@ -1,10 +1,7 @@
 // ignore_for_file: prefer_const_constructors, unnecessary_new, avoid_print
-
-//import 'dart:math';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:usp_events_version2/services/AuthService.dart';
 import 'package:usp_events_version2/view/profile.dart';
 import 'package:usp_events_version2/view/registration.dart';
 import 'package:usp_events_version2/widgets/loading.dart';
@@ -21,13 +18,12 @@ class _LoginScreenState extends State<LoginScreen> {
   bool loading = false;
   // form key
   final _formkey = GlobalKey<FormState>();
+  //firebase auth
+  final AuthService _auth = AuthService();
 
   // editing controller
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
-  //firebase
-  final _auth = FirebaseAuth.instance;
 
   // string for displaying the error Message
   String? errorMessage;
@@ -106,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
         minWidth: MediaQuery.of(context).size.width,
         onPressed: () {
-          signIn(emailController.text, passwordController.text);
+          signInUser();
         },
         child: Text(
           'LOGIN',
@@ -187,41 +183,26 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // login function
-  void signIn(String email, String password) async {
+  void signInUser() async {
     if (_formkey.currentState!.validate()) {
       setState(() => loading = true);
-      try {
-        await _auth
-            .signInWithEmailAndPassword(email: email, password: password)
-            .then((uid) => {
-                  Fluttertoast.showToast(
-                      msg: "Login Successful",
-                      backgroundColor: Colors.red,
-                      gravity: ToastGravity.CENTER),
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => ProfileScreen())),
-                });
-      } on FirebaseAuthException catch (error) {
-        switch (error.code) {
-          case "invalid-email":
-            errorMessage = "Your email address appears to be malformed.";
-
-            break;
-          case "wrong-password":
-            errorMessage = "Your password is wrong.";
-            break;
-          case "user-not-found":
-            errorMessage = "User with this email doesn't exist.";
-            break;
-          case "user-disabled":
-            errorMessage = "User with this email has been disabled.";
-            break;
-          default:
-            errorMessage = "An undefined Error happened.";
-        }
+      dynamic authResult =
+          await _auth.logInUser(emailController.text, passwordController.text);
+      if (authResult == null) {
         setState(() => loading = false);
-        Fluttertoast.showToast(msg: errorMessage!);
-        print(error.code);
+        Fluttertoast.showToast(
+            msg: "Sign in error, could not able to login",
+            backgroundColor: Colors.red,
+            gravity: ToastGravity.CENTER);
+      } else {
+        Fluttertoast.showToast(
+            msg: "Login successful",
+            backgroundColor: Colors.red,
+            gravity: ToastGravity.CENTER);
+        Navigator.pushAndRemoveUntil(
+            (context),
+            MaterialPageRoute(builder: (context) => ProfileScreen()),
+            (route) => false);
       }
     }
   }

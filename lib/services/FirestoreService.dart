@@ -6,12 +6,22 @@ class DatabaseManager {
   final CollectionReference users =
       FirebaseFirestore.instance.collection('userInfo');
 
+// Uploading user data to firestore
   Future<void> createUserData(
       String firstname, String secondname, String email, String uid) async {
     return await users.doc(uid).set({
       'first name': firstname,
       'second name': secondname,
       'email': email,
+    });
+  }
+
+//Updating User info
+  Future<void> updateUserData(
+      String firstname, String secondname, String uid) async {
+    return await users.doc(uid).update({
+      'first name': firstname,
+      'second name': secondname,
     });
   }
 }

@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, unnecessary_this, file_names, avoid_print, await_only_futures
+// ignore_for_file: prefer_const_constructors, unnecessary_this, file_names, avoid_print, await_only_futures, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,6 +18,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _firstnameController = TextEditingController();
   final TextEditingController _secondnameController = TextEditingController();
+  final TextEditingController _aboutController = TextEditingController();
 
   User? user = FirebaseAuth.instance.currentUser;
   UserModel loggedInUser = UserModel();
@@ -49,8 +50,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  updateData(String firstname, String secondname, String userID) async {
-    await DatabaseManager().updateUserData(firstname, secondname, userID);
+  updateData(
+      String firstname, String secondname, String about, String userID) async {
+    await DatabaseManager()
+        .updateUserData(firstname, secondname, about, userID);
     fetchUserData();
   }
 
@@ -61,12 +64,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ? Loading()
         : Scaffold(
             appBar: AppBar(
-              title: Padding(
-                padding: const EdgeInsets.all(30.0),
-                child: const Text(
-                  "Profile",
-                  style: TextStyle(fontSize: 20),
+              elevation: 0.0,
+              backgroundColor: Colors.teal,
+              leading: IconButton(
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
                 ),
+                onPressed: () {},
               ),
               actions: [
                 MaterialButton(
@@ -91,22 +96,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-            body: Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: Column(
-                  children: <Widget>[
-                    Text(
-                      "Welcome",
-                      style:
-                          TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                    ),
+            body: Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                  ),
+                  painter: HeaderCurvedContainer(),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
                     Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: SizedBox(
-                        height: 145,
-                        child: Image.asset("assets/profile.jpg",
-                            fit: BoxFit.contain),
+                      padding: EdgeInsets.all(20),
+                      child: Text(
+                        "Profile",
+                        style: TextStyle(
+                          fontSize: 25,
+                          letterSpacing: 1.0,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(10.0),
+                      width: MediaQuery.of(context).size.width / 3,
+                      height: MediaQuery.of(context).size.width / 3,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.white, width: 3),
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        image: DecorationImage(
+                          fit: BoxFit.cover,
+                          image: AssetImage('assets/images.png'),
+                        ),
                       ),
                     ),
                     SizedBox(
@@ -133,9 +159,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(
                       height: 15,
                     ),
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        padding: EdgeInsets.symmetric(horizontal: 38),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'About',
+                              style: TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              "${loggedInUser.about}",
+                              style: TextStyle(fontSize: 16, height: 1.4),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
                   ],
                 ),
-              ),
+              ],
             ),
           );
   }
@@ -154,19 +202,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (context) {
           return AlertDialog(
             title: Text('Edit User Details'),
-            content: SizedBox(
-              height: 150,
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _firstnameController,
-                    decoration: InputDecoration(hintText: ' First Name'),
-                  ),
-                  TextField(
-                    controller: _secondnameController,
-                    decoration: InputDecoration(hintText: 'Second Name'),
-                  ),
-                ],
+            content: SingleChildScrollView(
+              child: SizedBox(
+                height: 350,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _firstnameController,
+                      decoration: InputDecoration(
+                          labelText: 'First Name',
+                          hintText: 'Enter you first name'),
+                    ),
+                    TextField(
+                      controller: _secondnameController,
+                      decoration: InputDecoration(
+                          labelText: 'Second Name',
+                          hintText: 'Enter you last name'),
+                    ),
+                    TextField(
+                      controller: _aboutController,
+                      decoration: InputDecoration(
+                          labelText: 'About', hintText: 'Write about yourself'),
+                      maxLines: 4,
+                    ),
+                  ],
+                ),
               ),
             ),
             actions: [
@@ -190,10 +250,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   submitAction(BuildContext context) {
     setState(() => loading = true);
-    updateData(_firstnameController.text, _secondnameController.text, userID);
+    updateData(_firstnameController.text, _secondnameController.text,
+        _aboutController.text, userID);
 
     _firstnameController.clear();
     _secondnameController.clear();
+    _aboutController.clear();
     setState(() => loading = false);
   }
+}
+
+class HeaderCurvedContainer extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()..color = Colors.teal;
+    Path path = Path()
+      ..relativeLineTo(0, 130)
+      ..quadraticBezierTo(size.width / 3, 195, size.width, 130)
+      ..relativeLineTo(0, -130)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
